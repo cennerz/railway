@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -7,12 +8,20 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+// Serve index.html on root or explicit request
+app.get(['/', '/index.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const client = new Client({
   authStrategy: new LocalAuth({ clientId: "railway-session" }),
