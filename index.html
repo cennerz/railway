@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WhatsApp Sender</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>Scan QR Code</h2>
+  <div id="qrcode"></div>
+  <div id="status"></div>
+
+  <h3>Send WhatsApp Message</h3>
+  <form id="sendForm">
+    <input type="text" id="number" placeholder="Mobile with country code" required><br><br>
+    <textarea id="message" placeholder="Your message here" required></textarea><br><br>
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    const socket = io();
+
+    socket.on('qr', (qr) => {
+      document.getElementById('qrcode').innerHTML = 
+        `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${qr}&size=250x250"/>`;
+      document.getElementById('status').innerText = "Scan this QR with WhatsApp";
+    });
+
+    socket.on('ready', () => {
+      document.getElementById('status').innerText = "WhatsApp is ready!";
+    });
+
+    document.getElementById('sendForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const number = document.getElementById('number').value;
+      const message = document.getElementById('message').value;
+
+      const res = await fetch('/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number, message })
+      });
+
+      const data = await res.json();
+      alert(data.status === 'success' ? 'Message sent!' : 'Error: ' + data.message);
+    });
+  </script>
+</body>
+</html>
